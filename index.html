@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .container {
+            position: relative;
+            max-width: 550px;
+        }
+        .video-wrapper {
+            /* 全動画を同じ位置に重ねる */
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* 縦：横 = 9:16 */
+            width: 100%;
+            padding-top: 56.25%;
+        }
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: cover;
+        }
+        video[id^="video-"] {
+            display: none;
+        }
+    </style>
+    <title>movie connect test</title>
+</head>
+
+<body>
+    <div>
+        ボタン → 道路 → ニューロン
+        <button id="movie-start-1" type="button">movie start 1</button>
+    </div>
+    <div>
+        道路 → ニューロン → ボタン
+        <button id="movie-start-2" type="button">movie start 2</button>
+    </div>
+    <div>
+        ニューロン → ボタン → 道路
+        <button id="movie-start-3" type="button">movie start 3</button>
+    </div>
+    <div>
+        大きいデータ
+    </div>
+    <div>
+        湖 → ボタン → 道路
+        <button id="movie-start-4" type="button">movie start 4</button>
+    </div>
+    <div>
+        道路 → 湖 → ボタン
+        <button id="movie-start-5" type="button">movie start 5</button>
+    </div>
+    <div class="container">
+
+            <div class="video-wrapper">
+                <video id="video-1" poster="sample-1.jpg" src="sample-1.mp4" preload="auto" playsinline></video>
+            </div>
+            <div class="video-wrapper">
+                <video id="video-2" poster="sample-2.jpg" src="sample-2.mp4" preload="auto" playsinline></video>
+            </div>
+            <div class="video-wrapper">
+                <video id="video-3" poster="sample-3.jpg" src="sample-3.mp4" preload="auto" playsinline></video>
+            </div>
+            <div class="video-wrapper">
+                <video id="video-4" poster="sample-4.jpg" src="sample-4.mp4" preload="auto" playsinline></video>
+            </div>
+
+    </div>
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let playList = [];
+        let index = 0;
+        document.querySelectorAll('button[id^="movie-start-"]').forEach((button) => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('button[id^="movie-start-"]').forEach((button) => {
+                    button.disabled = true;
+                });
+                // 全ての動画を音が鳴る状態にする (iPhoneがこれやらないと2本目以降が再生できない)
+                // 参考：https://bagelee.com/programming/safari-video-audio-action/
+                document.querySelectorAll('video[id^="video-"]').forEach((video) => {
+                    video.muted = true;
+                    video.play();
+                    video.pause();
+                    video.muted = false;
+                    video.currentTime = 0;
+                    // とりあえず全部表示
+                    video.style.display = 'block';
+                });
+                const id = Number(this.id.split('-')[2]);
+                // 再生順
+                if (id === 1) {
+                    playList = ['video-1', 'video-2', 'video-3'];
+                } else if (id === 2) {
+                    playList = ['video-2', 'video-3', 'video-1'];
+                } else if (id === 3) {
+                    playList = ['video-3', 'video-1', 'video-2'];
+                } else if (id === 4) {
+                    playList = ['video-4', 'video-1', 'video-2'];
+                } else if (id === 5) {
+                    playList = ['video-2', 'video-4', 'video-1'];
+                }
+                // 先頭の動画を再生
+                index = 0;
+                const nextVideo = document.getElementById(playList[index]);
+                nextVideo.play();
+                // 再生した動画を前に出す
+                nextVideo.parentElement.style.zIndex = '100';
+            })
+        });
+        document.querySelectorAll('video[id^="video-"]').forEach((video) => {
+            video.addEventListener('ended', function() {
+                // 次の動画があれば再生
+                if (index+1 < playList.length) {
+                    index++;
+                    const nextVideo = document.getElementById(playList[index]);
+                    nextVideo.play();
+                    nextVideo.parentElement.style.zIndex = '100';
+                } else {
+                    document.querySelectorAll('video[id^="video-"]').forEach((video) => {
+                        video.style.display = 'none';
+                    });
+                    document.querySelectorAll('button[id^="movie-start-"]').forEach((button) => {
+                        button.disabled = false;
+                    });
+                }
+                // 終わった動画を非表示
+                this.parentElement.style.zIndex = '0';
+                this.currentTime = 0;
+            });
+        });
+    });
+</script>
+</html>
